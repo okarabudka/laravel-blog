@@ -2,30 +2,56 @@
 
 namespace Database\Factories;
 
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Post>
+ * @extends Factory<Post>
  */
 class PostFactory extends Factory
 {
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
-        $title = fake()->realText(50);
+        $title = rtrim(fake()->unique()->sentence(6), '.');
+
         return [
             'title' => $title,
             'slug' => Str::slug($title),
-            'thumbnail' => fake()->imageUrl,
-            'body' => fake()->realText(5000),
-            'active' => fake()->boolean,
-            'published_at' => fake()->dateTime,
-            'user_id' => 1
+            'thumbnail' => null,
+            'body' => '<p>'.implode('</p><p>', fake()->paragraphs(6)).'</p>',
+            'active' => true,
+            'published_at' => fake()->dateTimeBetween('-1 year', '-1 day'),
+            'user_id' => User::factory(),
+            'meta_title' => null,
+            'meta_description' => null,
         ];
+    }
+
+    public function published(): static
+    {
+        return $this->state(fn () => [
+            'active' => true,
+            'published_at' => fake()->dateTimeBetween('-1 year', '-1 day'),
+        ]);
+    }
+
+    public function draft(): static
+    {
+        return $this->state(fn () => [
+            'active' => false,
+        ]);
+    }
+
+    public function scheduled(): static
+    {
+        return $this->state(fn () => [
+            'active' => true,
+            'published_at' => fake()->dateTimeBetween('+1 day', '+1 month'),
+        ]);
     }
 }
