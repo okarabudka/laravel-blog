@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\PostView;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,31 +40,18 @@ class PostController extends Controller
             ->limit(3)
             ->get();
 
-        //If authorized - Show recommended posts based on user upvotes
-        //If not authorized - Popular posts based on views
+        // Readers get posts from the categories they upvoted; guests and readers
+        // without such posts get the most viewed ones.
         $user = auth()->user();
+        $user = $user instanceof User ? $user : null;
+        $recommendedPosts = $user ? $this->recommendedFor($user) : new Collection;
 
-        if ($user) {
-            $leftJoin = '(
-                    SELECT cp.category_id, cp.post_id
-                    FROM upvote_downvotes
-                    JOIN category_post cp ON upvote_downvotes.post_id = cp.post_id
-                    WHERE upvote_downvotes.is_upvote = 1 and upvote_downvotes.user_id = ?
-                ) as t';
-            $recommendedPosts = Post::query()
-                ->leftJoin('category_post as cp', 'posts.id', 'cp.post_id')
-                ->leftJoin(DB::raw($leftJoin), function ($join) {
-                    $join->on('t.category_id', '=', 'cp.category_id')->on('t.post_id', '<>', 'cp.post_id');
-                })
-                ->select('posts.*')
-                ->where('posts.id', '<>', DB::raw('t.post_id'))
-                ->setBindings([$user->id])
-                ->get();
-        } else {
+        if ($recommendedPosts->isEmpty()) {
             $recommendedPosts = Post::query()
                 ->leftJoin('post_views', 'posts.id', 'post_views.post_id')
                 ->select('posts.*', DB::raw('COUNT(post_views.id) as view_count'))
                 ->published()
+                ->when($user, fn (Builder $posts, User $user) => $this->notVotedBy($posts, $user))
                 ->orderByDesc('view_count')
                 ->groupBy('posts.id')
                 ->limit(5)
@@ -69,6 +59,30 @@ class PostController extends Controller
         }
 
         return view('home', compact('latestPost', 'popularPosts', 'recommendedPosts'));
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    private function recommendedFor(User $user): Collection
+    {
+        return Post::published()
+            ->whereHas('categories.posts.votes', fn (Builder $votes) => $votes
+                ->where('user_id', $user->id)
+                ->where('is_upvote', true))
+            ->tap(fn (Builder $posts) => $this->notVotedBy($posts, $user))
+            ->orderByDesc('published_at')
+            ->limit(5)
+            ->get();
+    }
+
+    /**
+     * @param  Builder<Post>  $posts
+     * @return Builder<Post>
+     */
+    private function notVotedBy(Builder $posts, User $user): Builder
+    {
+        return $posts->whereDoesntHave('votes', fn (Builder $votes) => $votes->where('user_id', $user->id));
     }
 
     /**

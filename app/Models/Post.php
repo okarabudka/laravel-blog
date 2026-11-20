@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
@@ -77,5 +78,29 @@ class Post extends Model
                 return $minutes . ' ' . str('min')->plural($minutes) . ', ' . $words . ' ' . str('words')->plural($words);
             }
         );
+    }
+
+    /**
+     * @return HasMany<UpvoteDownvote, $this>
+     */
+    public function votes(): HasMany
+    {
+        return $this->hasMany(UpvoteDownvote::class);
+    }
+
+    /**
+     * @return HasMany<PostView, $this>
+     */
+    public function views(): HasMany
+    {
+        return $this->hasMany(PostView::class);
+    }
+
+    /**
+     * @return HasMany<Comment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
     }
 }
