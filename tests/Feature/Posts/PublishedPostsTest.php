@@ -27,3 +27,9 @@ test('a scheduled post page is not found', function () {
 
     get(route('view', $post))->assertNotFound();
 });
+
+test('the excerpt shows quotes and ampersands as text', function () {
+    $post = Post::factory()->make(['body' => '<p>Tom &amp; Jerry&#039;s &quot;house&quot;</p>']);
+
+    expect($post->shortBody())->toBe('Tom & Jerry\'s "house"');
+});

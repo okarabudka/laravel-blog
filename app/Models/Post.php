@@ -62,7 +62,7 @@ class Post extends Model
 
     public function shortBody(): string
     {
-        return Str::words(strip_tags($this->body), 30);
+        return Str::words(html_entity_decode(strip_tags($this->body), ENT_QUOTES | ENT_HTML5), 30);
     }
 
     public function getFormattedDate(): string
