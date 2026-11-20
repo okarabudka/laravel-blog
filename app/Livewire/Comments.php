@@ -12,9 +12,10 @@ class Comments extends Component
     public Post $post;
 
     #[On('comment-created')]
+    #[On('comment-deleted')]
     public function render(): View
     {
-        $comments = $this->post->comments()->get();
+        $comments = $this->post->comments()->with('user')->latest()->latest('id')->get();
 
         return view('livewire.comments', compact('comments'));
     }

@@ -15,7 +15,7 @@ class CreateUser extends CreateRecord
     {
         /** @var User $user */
         $user = parent::handleRecordCreation($data);
-        $user->assignRole('admin');
+        $user->assignRole(User::ADMIN_ROLE);
 
         return $user;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Comment;
 use App\Models\Post;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Validate;
@@ -25,6 +26,13 @@ class CommentCreate extends Component
 
         if (! $user) {
             $this->redirectRoute('login');
+
+            return;
+        }
+
+        // The policy only refuses readers who have not verified their email yet.
+        if ($user->cannot('create', Comment::class)) {
+            $this->redirectRoute('verification.notice');
 
             return;
         }

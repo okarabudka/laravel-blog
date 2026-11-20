@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
@@ -86,9 +86,7 @@ class PostController extends Controller
      */
     public function show(Post $post, Request $request)
     {
-        if (! $post->isPublished()) {
-            throw new NotFoundHttpException();
-        }
+        Gate::authorize('view', $post);
 
         $prev = Post::query()
             ->published()
@@ -102,14 +100,15 @@ class PostController extends Controller
             ->orderBy('published_at')
             ->first();
 
-        $user = $request->user();
-
-        PostView::create([
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'post_id' => $post->id,
-            'user_id' => $user?->id
-        ]);
+        // Admin previews of drafts are not reader views.
+        if ($post->isPublished()) {
+            PostView::create([
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'post_id' => $post->id,
+                'user_id' => $request->user()?->id,
+            ]);
+        }
 
         return view('post.view', compact('post', 'prev', 'next'));
     }

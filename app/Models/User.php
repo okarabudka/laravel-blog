@@ -14,6 +14,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     use HasFactory, HasRoles, Notifiable;
 
+    public const string ADMIN_ROLE = 'admin';
+
     /**
      * @var list<string>
      */
@@ -34,7 +36,12 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasRole('admin');
+        return $this->isAdmin();
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole(self::ADMIN_ROLE);
     }
 
     /**
