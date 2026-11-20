@@ -120,16 +120,15 @@ class PostController extends Controller
         //
     }
 
-    public function byCategory(Category $category)
+    public function byCategory(Category $category): View
     {
-        $posts = Post::query()
-            ->join('category_post', 'posts.id', '=', 'category_post.post_id')
+        $posts = $category->posts()
             ->published()
-            ->where('category_post.category_id', '=', $category->id)
-            ->orderBy('published_at', 'desc')
+            ->with(['user', 'categories'])
+            ->orderByDesc('published_at')
             ->paginate(10);
 
-        return view('home', compact('posts'));
+        return view('post.index', compact('category', 'posts'));
     }
 
     /**
