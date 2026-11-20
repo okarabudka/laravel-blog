@@ -59,13 +59,17 @@ class Post extends Model
         return $this->published_at->format('F jS Y');
     }
 
-    public function getThumbnail()
+    public function getThumbnail(): ?string
     {
-        if(str_starts_with($this->thumbnail, 'http')){
+        if (! $this->thumbnail) {
+            return null;
+        }
+
+        if (str_starts_with($this->thumbnail, 'http')) {
             return $this->thumbnail;
         }
 
-        return '/storage/' . $this->thumbnail;
+        return '/storage/'.$this->thumbnail;
     }
 
     public function humanReadTime(): Attribute

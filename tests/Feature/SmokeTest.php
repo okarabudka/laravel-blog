@@ -4,7 +4,8 @@ use App\Models\Post;
 use App\Models\PostView;
 use App\Models\TextWidget;
 use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\RoleSeeder;
+use Database\Seeders\UserSeeder;
 
 test('a published post is shown and its view is recorded', function () {
     $post = Post::factory()->create();
@@ -27,7 +28,7 @@ test('the about page shows its text widget', function () {
 });
 
 test('the admin panel is open to admins only', function () {
-    $this->seed(DatabaseSeeder::class);
+    $this->seed([RoleSeeder::class, UserSeeder::class]);
     $admin = User::where('email', 'admin@example.com')->firstOrFail();
 
     $this->actingAs($admin)->get('/admin')->assertOk();

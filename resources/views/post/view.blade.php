@@ -2,7 +2,9 @@
     <div class="layout">
         <div>
             <article class="post">
-                <img class="post__image" src="{{ $post->getThumbnail() }}" alt="">
+                @if($post->getThumbnail())
+                    <img class="post__image" src="{{ $post->getThumbnail() }}" alt="">
+                @endif
 
                 <div class="post__body">
                     <div class="badges">

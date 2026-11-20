@@ -2,39 +2,22 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use App\Models\Post;
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 
+/**
+ * Demo blog for local development. Safe to run repeatedly: existing data is kept.
+ */
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-//        Post::factory(50)->create();
-
-        /** @var User $adminUser */
-
-        $adminUser = User::factory()->create([
-            'email' => 'admin@example.com',
-            'name' => 'Admin',
-            'password' => bcrypt('12345678'),
+        $this->call([
+            RoleSeeder::class,
+            UserSeeder::class,
+            CategorySeeder::class,
+            TextWidgetSeeder::class,
+            PostSeeder::class,
+            EngagementSeeder::class,
         ]);
-
-        $adminRole = Role::create([
-            'name' => 'admin'
-        ]);
-        $adminUser->assignRole($adminRole);
-
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
     }
 }

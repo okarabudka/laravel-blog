@@ -1,9 +1,11 @@
 @props(['post', 'excerpt' => true])
 
 <article {{ $attributes->merge(['class' => 'post-card']) }}>
-    <a href="{{ route('view', $post) }}" class="post-card__image">
-        <img src="{{ $post->getThumbnail() }}" alt="" loading="lazy">
-    </a>
+    @if($post->getThumbnail())
+        <a href="{{ route('view', $post) }}" class="post-card__image">
+            <img src="{{ $post->getThumbnail() }}" alt="" loading="lazy">
+        </a>
+    @endif
 
     <div class="post-card__body">
         <div class="badges">
