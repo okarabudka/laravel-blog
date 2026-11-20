@@ -3,77 +3,43 @@
 namespace App\Livewire;
 
 use App\Models\Post;
+use App\Models\UpvoteDownvote as Vote;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class UpvoteDownvote extends Component
 {
     public Post $post;
 
-    public function mount(Post $post)
+    public function render(): View
     {
-        $this->post = $post;
-    }
+        $upvotes = $this->post->votes()->where('is_upvote', true)->count();
+        $downvotes = $this->post->votes()->where('is_upvote', false)->count();
 
-    public function render()
-    {
-        $upvotes = \App\Models\UpvoteDownvote::where('post_id', '=', $this->post->id)
-            ->where('is_upvote', '=', true)
-            ->count();
-
-        $downvotes = \App\Models\UpvoteDownvote::where('post_id', '=', $this->post->id)
-            ->where('is_upvote', '=', false)
-            ->count();
-
-        $hasUpvote = null;
-
-        /** @var User $user */
-        $user = request()->user();
-
-        if ($user) {
-            $model = \App\Models\UpvoteDownvote::where('post_id', '=', $this->post->id)
-                ->where('user_id', '=', $user->id)
-                ->first();
-            if ($model) {
-                $hasUpvote = !!$model->is_upvote;
-            }
-        }
+        $user = auth()->user();
+        $vote = $user instanceof User ? Vote::findFor($this->post, $user) : null;
+        $hasUpvote = $vote?->is_upvote;
 
         return view('livewire.upvote-downvote', compact('upvotes', 'downvotes', 'hasUpvote'));
     }
 
-    public function upvoteDownvote($upvote = true)
+    public function upvoteDownvote(bool $upvote = true): void
     {
-        /** @var User $user */
-        $user = request()->user();
+        $user = auth()->user();
 
-        if (!$user) {
-            return $this->redirect('login');
-        }
-
-        if (!$user->hasVerifiedEmail()) {
-            return $this->redirect('verification.notice');
-        }
-
-        $model = \App\Models\UpvoteDownvote::where('post_id', '=', $this->post->id)
-            ->where('user_id', '=', $user->id)
-            ->first();
-
-        if (!$model) {
-            \App\Models\UpvoteDownvote::create([
-                'is_upvote' => $upvote,
-                'post_id' => $this->post->id,
-                'user_id' => $user->id,
-            ]);
+        if (! $user instanceof User) {
+            $this->redirectRoute('login');
 
             return;
         }
 
-        if (($upvote && $model->is_upvote) || (!$upvote && !$model->is_upvote)) {
-            $model->delete();
-        } else {
-            $model->is_upvote = $upvote;
-            $model->save();
+        if (! $user->hasVerifiedEmail()) {
+            $this->redirectRoute('verification.notice');
+
+            return;
         }
+
+        Vote::toggle($this->post, $user, $upvote);
     }
 }
