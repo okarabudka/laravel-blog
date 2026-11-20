@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\PostView;
-use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +18,7 @@ class PostController extends Controller
     public function home(): View
     {
         //Latest posts
-        $latestPost = Post::where('active', '=', 1)
-            ->whereDate('published_at', '<', Carbon::now())
+        $latestPost = Post::published()
             ->orderBy('published_at', 'desc')
             ->limit(1)
             ->first();
@@ -33,8 +31,7 @@ class PostController extends Controller
                 $query->whereNull('upvote_downvotes.is_upvote')
                     ->orWhere('upvote_downvotes.is_upvote', '=', 1);
             })
-            ->where('active', '=', 1)
-            ->whereDate('published_at', '<', Carbon::now())
+            ->published()
             ->orderByDesc('upvote_count')
             ->groupBy('posts.id')
             ->limit(3)
@@ -64,8 +61,7 @@ class PostController extends Controller
             $recommendedPosts = Post::query()
                 ->leftJoin('post_views', 'posts.id', 'post_views.post_id')
                 ->select('posts.*', DB::raw('COUNT(post_views.id) as view_count'))
-                ->where('active', '=', 1)
-                ->whereDate('published_at', '<', Carbon::now())
+                ->published()
                 ->orderByDesc('view_count')
                 ->groupBy('posts.id')
                 ->limit(5)
@@ -88,21 +84,19 @@ class PostController extends Controller
      */
     public function show(Post $post, Request $request)
     {
-        if (!$post->active || $post->published_at > Carbon::now()) {
+        if (! $post->isPublished()) {
             throw new NotFoundHttpException();
         }
 
         $prev = Post::query()
-            ->where('active', true)
-            ->whereDate('published_at', '<=', Carbon::now())
+            ->published()
             ->whereDate('published_at', '<', $post->published_at)
             ->orderBy('published_at', 'asc')
             ->limit(1)
             ->first();
 
         $next = Post::query()
-            ->where('active', true)
-            ->whereDate('published_at', '<=', Carbon::now())
+            ->published()
             ->whereDate('published_at', '>', $post->published_at)
             ->orderBy('published_at', 'desc')
             ->limit(1)
@@ -132,9 +126,8 @@ class PostController extends Controller
     {
         $posts = Post::query()
             ->join('category_post', 'posts.id', '=', 'category_post.post_id')
-            ->where('active', true)
+            ->published()
             ->where('category_post.category_id', '=', $category->id)
-            ->whereDate('published_at', '<=', Carbon::now())
             ->orderBy('published_at', 'desc')
             ->paginate(10);
 
