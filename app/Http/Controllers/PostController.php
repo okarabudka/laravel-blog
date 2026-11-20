@@ -90,16 +90,14 @@ class PostController extends Controller
 
         $prev = Post::query()
             ->published()
-            ->whereDate('published_at', '<', $post->published_at)
-            ->orderBy('published_at', 'asc')
-            ->limit(1)
+            ->where('published_at', '<', $post->published_at)
+            ->orderByDesc('published_at')
             ->first();
 
         $next = Post::query()
             ->published()
-            ->whereDate('published_at', '>', $post->published_at)
-            ->orderBy('published_at', 'desc')
-            ->limit(1)
+            ->where('published_at', '>', $post->published_at)
+            ->orderBy('published_at')
             ->first();
 
         $user = $request->user();
