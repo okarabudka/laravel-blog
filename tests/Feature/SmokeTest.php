@@ -34,3 +34,9 @@ test('the admin panel is open to admins only', function () {
     $this->actingAs($admin)->get('/admin')->assertOk();
     $this->actingAs(User::factory()->create())->get('/admin')->assertForbidden();
 });
+
+test('the about page is not found without an active widget', function () {
+    TextWidget::factory()->create(['key' => 'about-us', 'active' => false]);
+
+    $this->get(route('about'))->assertNotFound();
+});
