@@ -38,3 +38,14 @@ test('drafts and scheduled posts record no view', function (string $state) {
 
     expect(PostView::count())->toBe(0);
 })->with(['draft', 'scheduled']);
+
+test('a view is recorded for clients without or with a very long user agent', function (?string $agent) {
+    $post = Post::factory()->create();
+
+    $this->withHeader('User-Agent', (string) $agent)->get(route('view', $post))->assertOk();
+
+    expect(mb_strlen(PostView::sole()->user_agent))->toBeLessThanOrEqual(255);
+})->with([
+    'none' => [''],
+    'long' => [str_repeat('Mozilla/5.0 ', 40)],
+]);

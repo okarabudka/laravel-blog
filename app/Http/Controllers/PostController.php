@@ -11,9 +11,13 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
+    /** Length of post_views.user_agent. */
+    private const int USER_AGENT_LENGTH = 255;
+
     public function home(): View
     {
         $latestPost = Post::published()
@@ -90,7 +94,7 @@ class PostController extends Controller
         if ($post->isPublished()) {
             PostView::create([
                 'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
+                'user_agent' => Str::limit((string) $request->userAgent(), self::USER_AGENT_LENGTH, ''),
                 'post_id' => $post->id,
                 'user_id' => $request->user()?->id,
             ]);
