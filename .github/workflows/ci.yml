@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the stack and seed the demo blog
+        run: make up
+      - name: Pint and Larastan
+        run: make lint
+      - name: Tests on SQLite
+        run: make test
+      - name: Tests on MariaDB
+        run: make test-mariadb
+      - name: Smoke test the running blog
+        run: |
+          curl -kfsS https://localhost:8443/ | grep -q 'Latest post'
+          curl -kfsS https://localhost:8443/category/laravel | grep -q 'class="post-card'
+          curl -kfsS https://localhost:8443/about-us | grep -q 'About this blog'
+          curl -kfsS -o /dev/null https://localhost:8443/admin/login
+          curl -fsS -o /dev/null http://localhost:8025
+      - name: Seeding again keeps the data
+        run: make up
+      - if: failure()
+        run: docker compose logs
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
