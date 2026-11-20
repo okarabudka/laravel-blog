@@ -1,7 +1,11 @@
-<div class="comment-form">
-    <input wire:model="comment" type="text" class="input" placeholder="Leave a comment">
+<form class="comment-form" wire:submit="createComment">
+    <label for="comment" class="sr-only">Comment</label>
+    <textarea id="comment" wire:model="comment" class="input" rows="3" placeholder="Leave a comment"></textarea>
+    @error('comment')
+        <ul class="errors"><li>{{ $message }}</li></ul>
+    @enderror
 
     <div>
-        <button wire:click="createComment" type="submit" class="btn btn-primary">Publish comment</button>
+        <button type="submit" class="btn btn-primary">Publish comment</button>
     </div>
-</div>
+</form>

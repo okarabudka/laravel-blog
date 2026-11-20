@@ -2,38 +2,41 @@
 
 namespace App\Livewire;
 
-use App\Models\Comment;
 use App\Models\Post;
+use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class CommentCreate extends Component
 {
+    #[Validate('required|string|max:2000')]
     public string $comment = '';
 
     public Post $post;
 
-    public function mount(Post $post)
-    {
-        $this->post = $post;
-    }
-
-    public function render()
+    public function render(): View
     {
         return view('livewire.comment-create');
     }
 
-    public function createComment()
+    public function createComment(): void
     {
         $user = auth()->user();
 
-        if (!$user) {
-            return $this->redirect('/login');
+        if (! $user) {
+            $this->redirectRoute('login');
+
+            return;
         }
 
-        Comment::create([
+        $this->validate();
+
+        $this->post->comments()->create([
             'comment' => $this->comment,
-            'post_id' => $this->post->id,
-            'user_id' => 1
+            'user_id' => $user->id,
         ]);
+
+        $this->reset('comment');
+        $this->dispatch('comment-created');
     }
 }

@@ -2,22 +2,19 @@
 
 namespace App\Livewire;
 
-use App\Models\Comment;
 use App\Models\Post;
+use Illuminate\Contracts\View\View;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Comments extends Component
 {
     public Post $post;
 
-    public function mount(Post $post)
+    #[On('comment-created')]
+    public function render(): View
     {
-        $this->post = $post;
-    }
-
-    public function render()
-    {
-        $comments = Comment::where('post_id', '=', $this->post->id)->get();
+        $comments = $this->post->comments()->get();
 
         return view('livewire.comments', compact('comments'));
     }
