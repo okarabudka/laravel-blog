@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PostController extends Controller
@@ -20,23 +19,14 @@ class PostController extends Controller
      */
     public function home(): View
     {
-        //Latest posts
         $latestPost = Post::published()
-            ->orderBy('published_at', 'desc')
-            ->limit(1)
+            ->orderByDesc('published_at')
             ->first();
 
-        //Show the most popular 3 posts based on upvotes
-        $popularPosts = Post::query()
-            ->leftJoin('upvote_downvotes', 'posts.id', 'upvote_downvotes.post_id')
-            ->select('posts.*', DB::raw('COUNT(upvote_downvotes.id) as upvote_count'))
-            ->where(function ($query) {
-                $query->whereNull('upvote_downvotes.is_upvote')
-                    ->orWhere('upvote_downvotes.is_upvote', '=', 1);
-            })
-            ->published()
+        $popularPosts = Post::published()
+            ->withCount(['votes as upvote_count' => fn (Builder $votes) => $votes->where('is_upvote', true)])
             ->orderByDesc('upvote_count')
-            ->groupBy('posts.id')
+            ->orderByDesc('published_at')
             ->limit(3)
             ->get();
 
@@ -47,13 +37,11 @@ class PostController extends Controller
         $recommendedPosts = $user ? $this->recommendedFor($user) : new Collection;
 
         if ($recommendedPosts->isEmpty()) {
-            $recommendedPosts = Post::query()
-                ->leftJoin('post_views', 'posts.id', 'post_views.post_id')
-                ->select('posts.*', DB::raw('COUNT(post_views.id) as view_count'))
-                ->published()
+            $recommendedPosts = Post::published()
+                ->withCount('views')
                 ->when($user, fn (Builder $posts, User $user) => $this->notVotedBy($posts, $user))
-                ->orderByDesc('view_count')
-                ->groupBy('posts.id')
+                ->orderByDesc('views_count')
+                ->orderByDesc('published_at')
                 ->limit(5)
                 ->get();
         }

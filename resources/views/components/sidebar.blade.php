@@ -7,7 +7,7 @@
                 <li>
                     <a href="{{ route('by-category', $category) }}"
                        @class(['is-active' => request('category')?->slug === $category->slug])>
-                        <span>{{ $category->title }}</span> <span>{{ $category->total }}</span>
+                        <span>{{ $category->title }}</span> <span>{{ $category->posts_count }}</span>
                     </a>
                 </li>
             @endforeach
