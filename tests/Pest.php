@@ -8,7 +8,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature', 'Unit');
+    ->in('Feature');
 
 /**
  * Typed access to a variable passed to the rendered view.
