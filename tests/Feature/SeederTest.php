@@ -9,12 +9,16 @@ use App\Models\UpvoteDownvote;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Storage;
+use function Pest\Laravel\assertAuthenticated;
+use function Pest\Laravel\get;
+use function Pest\Laravel\post;
+use function Pest\Laravel\seed;
 
 beforeEach(fn () => Storage::fake('public'));
 
 test('the demo seeder fills the blog and can run twice', function () {
-    $this->seed(DatabaseSeeder::class);
-    $this->seed(DatabaseSeeder::class);
+    seed(DatabaseSeeder::class);
+    seed(DatabaseSeeder::class);
 
     expect(Post::published()->count())->toBe(25)
         ->and(Post::where('active', false)->count())->toBe(3)
@@ -28,22 +32,22 @@ test('the demo seeder fills the blog and can run twice', function () {
         ->and(Comment::count())->toBeGreaterThan(0);
 
     Post::all()->each(fn (Post $post) => expect($post->categories)->not->toBeEmpty());
-    Storage::disk('public')->assertExists(Post::firstOrFail()->thumbnail);
+    Storage::disk('public')->assertExists((string) Post::firstOrFail()->thumbnail);
 });
 
 test('the seeded blog renders its pages', function () {
-    $this->seed(DatabaseSeeder::class);
+    seed(DatabaseSeeder::class);
 
-    $this->get(route('home'))->assertOk()->assertSee('Laravel Blog');
-    $this->get(route('about'))->assertOk()->assertSee('About this blog');
-    $this->get(route('by-category', Category::firstOrFail()))->assertOk();
-    $this->get(route('view', Post::published()->firstOrFail()))->assertOk();
+    get(route('home'))->assertOk()->assertSee('Laravel Blog');
+    get(route('about'))->assertOk()->assertSee('About this blog');
+    get(route('by-category', Category::firstOrFail()))->assertOk();
+    get(route('view', Post::published()->firstOrFail()))->assertOk();
 });
 
 test('demo readers can sign in with the documented password', function () {
-    $this->seed(DatabaseSeeder::class);
+    seed(DatabaseSeeder::class);
 
-    $this->post('/login', ['email' => 'reader1@example.com', 'password' => 'password']);
+    post('/login', ['email' => 'reader1@example.com', 'password' => 'password']);
 
-    $this->assertAuthenticated();
+    assertAuthenticated();
 });

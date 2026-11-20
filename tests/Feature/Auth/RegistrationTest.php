@@ -1,17 +1,21 @@
 <?php
 
+use function Pest\Laravel\assertAuthenticated;
+use function Pest\Laravel\get;
+use function Pest\Laravel\post;
+
 test('registration screen can be rendered', function () {
-    $this->get('/register')->assertOk();
+    get('/register')->assertOk();
 });
 
 test('new users can register', function () {
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);
 
-    $this->assertAuthenticated();
+    assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
 });

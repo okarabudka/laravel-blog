@@ -2,6 +2,8 @@
 
 use App\Models\Category;
 use App\Models\Post;
+use Illuminate\Pagination\LengthAwarePaginator;
+use function Pest\Laravel\get;
 
 test('the category page lists its published posts with pagination', function () {
     $category = Category::factory()->create(['title' => 'Travel']);
@@ -11,12 +13,12 @@ test('the category page lists its published posts with pagination', function () 
     $foreign = Post::factory()->count(3)->hasAttached($other)->create();
     $draft = Post::factory()->draft()->hasAttached($category)->create();
 
-    $response = $this->get(route('by-category', $category))->assertOk()->assertSee('Travel');
+    $response = get(route('by-category', $category))->assertOk()->assertSee('Travel');
 
-    $listed = $response->viewData('posts');
+    $listed = viewVariable($response, 'posts', LengthAwarePaginator::class);
     expect($listed->total())->toBe(12)
         ->and($listed->count())->toBe(10)
-        ->and($listed->pluck('id')->diff($posts->pluck('id')))->toBeEmpty();
+        ->and($listed->getCollection()->pluck('id')->diff($posts->pluck('id')))->toBeEmpty();
 
     $response->assertSee(route('by-category', ['category' => $category, 'page' => 2]), false)
         ->assertDontSee(route('view', $draft), false);
@@ -30,7 +32,7 @@ test('post links on the category page use the slug of each post', function () {
     $category = Category::factory()->create();
     Post::factory()->hasAttached($category)->create(['slug' => 'a-post-about-trains']);
 
-    $this->get(route('by-category', $category))
+    get(route('by-category', $category))
         ->assertOk()
         ->assertSee(route('view', 'a-post-about-trains'), false);
 });
@@ -39,5 +41,7 @@ test('the second page lists the remaining posts', function () {
     $category = Category::factory()->create();
     Post::factory()->count(12)->hasAttached($category)->create();
 
-    expect($this->get(route('by-category', ['category' => $category, 'page' => 2]))->viewData('posts')->count())->toBe(2);
+    $page = get(route('by-category', ['category' => $category, 'page' => 2]));
+
+    expect(viewVariable($page, 'posts', LengthAwarePaginator::class)->count())->toBe(2);
 });

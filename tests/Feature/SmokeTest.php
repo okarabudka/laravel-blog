@@ -6,11 +6,14 @@ use App\Models\TextWidget;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\UserSeeder;
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
+use function Pest\Laravel\seed;
 
 test('a published post is shown and its view is recorded', function () {
     $post = Post::factory()->create();
 
-    $this->get(route('view', $post))->assertOk()->assertSee($post->title);
+    get(route('view', $post))->assertOk()->assertSee($post->title);
 
     expect(PostView::where('post_id', $post->id)->count())->toBe(1);
 });
@@ -18,25 +21,25 @@ test('a published post is shown and its view is recorded', function () {
 test('a draft post is not found', function () {
     $post = Post::factory()->draft()->create();
 
-    $this->get(route('view', $post))->assertNotFound();
+    get(route('view', $post))->assertNotFound();
 });
 
 test('the about page shows its text widget', function () {
     TextWidget::factory()->create(['key' => 'about-us', 'title' => 'About this blog']);
 
-    $this->get(route('about'))->assertOk()->assertSee('About this blog');
+    get(route('about'))->assertOk()->assertSee('About this blog');
 });
 
 test('the admin panel is open to admins only', function () {
-    $this->seed([RoleSeeder::class, UserSeeder::class]);
+    seed([RoleSeeder::class, UserSeeder::class]);
     $admin = User::where('email', 'admin@example.com')->firstOrFail();
 
-    $this->actingAs($admin)->get('/admin')->assertOk();
-    $this->actingAs(User::factory()->create())->get('/admin')->assertForbidden();
+    actingAs($admin)->get('/admin')->assertOk();
+    actingAs(User::factory()->create())->get('/admin')->assertForbidden();
 });
 
 test('the about page is not found without an active widget', function () {
     TextWidget::factory()->create(['key' => 'about-us', 'active' => false]);
 
-    $this->get(route('about'))->assertNotFound();
+    get(route('about'))->assertNotFound();
 });

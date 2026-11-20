@@ -8,6 +8,7 @@ use App\Models\PostView;
 use App\Models\UpvoteDownvote;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Date;
 
 /**
  * Votes, views and comments in plausible proportions, so the home page rankings have something to rank.
@@ -35,18 +36,18 @@ class EngagementSeeder extends Seeder
 
         fake()->seed(2026);
 
-        $readers = User::where('email', 'like', 'reader%@example.com')->get();
-        $posts = Post::published()->get();
+        $readers = User::where('email', 'like', 'reader%@example.com')->get()->values()->all();
+        $readerIds = array_map(fn (User $reader) => $reader->id, $readers);
 
-        foreach ($posts as $post) {
-            $this->votes($post, $readers->all());
-            $this->views($post, $readers->pluck('id')->all());
-            $this->comments($post, $readers->all());
+        foreach (Post::published()->get() as $post) {
+            $this->votes($post, $readers);
+            $this->views($post, $readerIds);
+            $this->comments($post, $readers);
         }
     }
 
     /**
-     * @param  list<User>  $readers
+     * @param  array<int, User>  $readers
      */
     private function votes(Post $post, array $readers): void
     {
@@ -62,7 +63,7 @@ class EngagementSeeder extends Seeder
     }
 
     /**
-     * @param  list<int>  $readerIds
+     * @param  array<int, int>  $readerIds
      */
     private function views(Post $post, array $readerIds): void
     {
@@ -79,17 +80,19 @@ class EngagementSeeder extends Seeder
     }
 
     /**
-     * @param  list<User>  $readers
+     * @param  array<int, User>  $readers
      */
     private function comments(Post $post, array $readers): void
     {
-        foreach (fake()->randomElements($readers, fake()->numberBetween(0, 3)) as $reader) {
+        $commenters = collect($readers)->shuffle()->take(fake()->numberBetween(0, 3));
+
+        foreach ($commenters as $reader) {
             $comment = new Comment([
                 'post_id' => $post->id,
                 'user_id' => $reader->id,
                 'comment' => fake()->randomElement(self::COMMENTS),
             ]);
-            $comment->created_at = $comment->updated_at = fake()->dateTimeBetween($post->published_at ?? 'now', 'now');
+            $comment->created_at = $comment->updated_at = Date::instance(fake()->dateTimeBetween($post->published_at ?? 'now', 'now'));
             $comment->save();
         }
     }

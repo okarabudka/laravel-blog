@@ -23,7 +23,7 @@ class PostFactory extends Factory
             'title' => $title,
             'slug' => Str::slug($title),
             'thumbnail' => null,
-            'body' => '<p>'.implode('</p><p>', fake()->paragraphs(6)).'</p>',
+            'body' => collect(range(1, 6))->map(fn () => '<p>'.fake()->paragraph().'</p>')->implode(''),
             'active' => true,
             'published_at' => fake()->dateTimeBetween('-1 year', '-1 day'),
             'user_id' => User::factory(),

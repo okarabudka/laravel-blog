@@ -3,7 +3,12 @@
     "name": "okarabudka/laravel-blog",
     "type": "project",
     "description": "A blog on Laravel 13 with a Filament admin panel, Livewire voting and comments, and policy-based authorization.",
-    "keywords": ["laravel", "filament", "livewire", "blog"],
+    "keywords": [
+        "laravel",
+        "filament",
+        "livewire",
+        "blog"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.5",
@@ -37,6 +42,17 @@
         }
     },
     "scripts": {
+        "test": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test"
+        ],
+        "lint": [
+            "pint --test",
+            "phpstan analyse --no-progress --memory-limit=1G"
+        ],
+        "fix": [
+            "pint"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",

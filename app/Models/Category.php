@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Category extends Model
 {
+    /** @use HasFactory<\Database\Factories\CategoryFactory> */
     use HasFactory;
 
     protected $fillable = ['title', 'slug'];
@@ -22,7 +23,7 @@ class Category extends Model
     #[Scope]
     protected function withPublishedPosts(Builder $query): void
     {
-        $published = fn (Builder $posts) => $posts->published();
+        $published = fn (Builder $posts) => $posts->where('active', true)->where('published_at', '<=', now());
 
         $query->whereHas('posts', $published)
             ->withCount(['posts' => $published])
@@ -30,6 +31,9 @@ class Category extends Model
             ->orderBy('title');
     }
 
+    /**
+     * @return BelongsToMany<Post, $this>
+     */
     public function posts(): BelongsToMany
     {
         return $this->belongsToMany(Post::class);

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UpvoteDownvote extends Model
 {
+    /** @use HasFactory<\Database\Factories\UpvoteDownvoteFactory> */
     use HasFactory;
 
     protected $fillable = [

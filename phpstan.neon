@@ -1,0 +1,14 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: max
+    paths:
+        - app
+        - database
+        - routes
+        - tests
+
+    excludePaths:
+        # Published unchanged from spatie/laravel-permission.
+        - database/migrations/2023_06_10_113712_create_permission_tables.php

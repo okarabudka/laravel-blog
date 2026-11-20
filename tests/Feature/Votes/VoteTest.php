@@ -6,12 +6,10 @@ use App\Models\UpvoteDownvote as Vote;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
-    $this->post = Post::factory()->create();
-});
-
 test('guests are sent to the login page', function () {
-    Livewire::test(UpvoteDownvote::class, ['post' => $this->post])
+    $post = Post::factory()->create();
+
+    Livewire::test(UpvoteDownvote::class, ['post' => $post])
         ->call('upvoteDownvote')
         ->assertRedirect(route('login'));
 
@@ -19,8 +17,10 @@ test('guests are sent to the login page', function () {
 });
 
 test('readers with an unverified email are sent to the verification notice', function () {
+    $post = Post::factory()->create();
+
     Livewire::actingAs(User::factory()->unverified()->create())
-        ->test(UpvoteDownvote::class, ['post' => $this->post])
+        ->test(UpvoteDownvote::class, ['post' => $post])
         ->call('upvoteDownvote')
         ->assertRedirect(route('verification.notice'));
 
@@ -28,16 +28,18 @@ test('readers with an unverified email are sent to the verification notice', fun
 });
 
 test('an upvote is added and removed again on the second click', function () {
+    $post = Post::factory()->create();
+
     $reader = User::factory()->create();
 
-    $component = Livewire::actingAs($reader)
-        ->test(UpvoteDownvote::class, ['post' => $this->post])
-        ->call('upvoteDownvote')
+    $component = Livewire::actingAs($reader)->test(UpvoteDownvote::class, ['post' => $post]);
+
+    $component->call('upvoteDownvote')
         ->assertViewHas('upvotes', 1)
         ->assertViewHas('hasUpvote', true);
 
     expect(Vote::sole()->only(['user_id', 'post_id', 'is_upvote']))
-        ->toBe(['user_id' => $reader->id, 'post_id' => $this->post->id, 'is_upvote' => true]);
+        ->toBe(['user_id' => $reader->id, 'post_id' => $post->id, 'is_upvote' => true]);
 
     $component->call('upvoteDownvote')
         ->assertViewHas('upvotes', 0)
@@ -47,12 +49,14 @@ test('an upvote is added and removed again on the second click', function () {
 });
 
 test('a downvote replaces an upvote', function () {
+    $post = Post::factory()->create();
+
     $reader = User::factory()->create();
-    Vote::factory()->for($reader)->for($this->post)->create();
-    Vote::factory()->for($this->post)->create();
+    Vote::factory()->for($reader)->for($post)->create();
+    Vote::factory()->for($post)->create();
 
     Livewire::actingAs($reader)
-        ->test(UpvoteDownvote::class, ['post' => $this->post])
+        ->test(UpvoteDownvote::class, ['post' => $post])
         ->call('upvoteDownvote', false)
         ->assertViewHas('upvotes', 1)
         ->assertViewHas('downvotes', 1)
@@ -62,14 +66,16 @@ test('a downvote replaces an upvote', function () {
 });
 
 test('toggling a vote without the component', function () {
+    $post = Post::factory()->create();
+
     $reader = User::factory()->create();
 
-    Vote::toggle($this->post, $reader, false);
-    expect(Vote::findFor($this->post, $reader)?->is_upvote)->toBeFalse();
+    Vote::toggle($post, $reader, false);
+    expect(Vote::findFor($post, $reader)?->is_upvote)->toBeFalse();
 
-    Vote::toggle($this->post, $reader, true);
-    expect(Vote::findFor($this->post, $reader)?->is_upvote)->toBeTrue();
+    Vote::toggle($post, $reader, true);
+    expect(Vote::findFor($post, $reader)?->is_upvote)->toBeTrue();
 
-    Vote::toggle($this->post, $reader, true);
-    expect(Vote::findFor($this->post, $reader))->toBeNull();
+    Vote::toggle($post, $reader, true);
+    expect(Vote::findFor($post, $reader))->toBeNull();
 });

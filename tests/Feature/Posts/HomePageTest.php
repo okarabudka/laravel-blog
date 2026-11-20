@@ -4,9 +4,11 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\UpvoteDownvote;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Collection;
+use function Pest\Laravel\get;
 
 test('the home page renders on an empty database', function () {
-    $this->get(route('home'))
+    get(route('home'))
         ->assertOk()
         ->assertSee('No posts yet');
 });
@@ -16,7 +18,7 @@ test('popular posts are ordered by upvotes and ignore downvotes', function () {
     $second = Post::factory()->hasVotes(2)->has(UpvoteDownvote::factory()->downvote()->count(4), 'votes')->create();
     $onlyDownvoted = Post::factory()->has(UpvoteDownvote::factory()->downvote(), 'votes')->create();
 
-    $popular = $this->get(route('home'))->assertOk()->viewData('popularPosts');
+    $popular = viewVariable(get(route('home'))->assertOk(), 'popularPosts', Collection::class);
 
     expect($popular->pluck('id')->all())->toBe([$first->id, $second->id, $onlyDownvoted->id])
         ->and($popular->pluck('upvote_count')->all())->toBe([3, 2, 0]);
@@ -27,7 +29,7 @@ test('guests get the most viewed posts as recommendations', function () {
     $less = Post::factory()->hasViews(2)->create();
     $none = Post::factory()->create();
 
-    $recommended = $this->get(route('home'))->assertOk()->viewData('recommendedPosts');
+    $recommended = viewVariable(get(route('home'))->assertOk(), 'recommendedPosts', Collection::class);
 
     expect($recommended->pluck('id')->all())->toBe([$most->id, $less->id, $none->id]);
 });
@@ -40,9 +42,9 @@ test('the navigation lists categories by their number of published posts', funct
     Post::factory()->count(2)->hasAttached($big)->create();
     Post::factory()->draft()->count(3)->hasAttached($small)->create();
 
-    $html = $this->get(route('home'))->assertOk()->getContent();
+    $html = get(route('home'))->assertOk()->getContent();
     $navigation = Str::betweenFirst((string) $html, 'class="topics-list"', '</div>');
 
     expect($navigation)->toMatch('/Big topic.*Small topic/s')
-        ->not->toContain('Empty topic');
+        ->and(str_contains($navigation, 'Empty topic'))->toBeFalse();
 });

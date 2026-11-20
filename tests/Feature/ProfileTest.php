@@ -1,17 +1,19 @@
 <?php
 
 use App\Models\User;
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\assertGuest;
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)->get('/profile')->assertOk();
+    actingAs($user)->get('/profile')->assertOk();
 });
 
 test('profile information can be updated', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
+    actingAs($user)
         ->patch('/profile', [
             'name' => 'Test User',
             'email' => 'test@example.com',
@@ -29,7 +31,7 @@ test('profile information can be updated', function () {
 test('email verification status is unchanged when the email address is unchanged', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
+    actingAs($user)
         ->patch('/profile', [
             'name' => 'Test User',
             'email' => $user->email,
@@ -43,19 +45,19 @@ test('email verification status is unchanged when the email address is unchanged
 test('user can delete their account', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
+    actingAs($user)
         ->delete('/profile', ['password' => 'password'])
         ->assertSessionHasNoErrors()
         ->assertRedirect('/');
 
-    $this->assertGuest();
+    assertGuest();
     expect($user->fresh())->toBeNull();
 });
 
 test('correct password must be provided to delete account', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
+    actingAs($user)
         ->from('/profile')
         ->delete('/profile', ['password' => 'wrong-password'])
         ->assertSessionHasErrorsIn('userDeletion', 'password')

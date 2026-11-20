@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PostView extends Model
 {
+    /** @use HasFactory<\Database\Factories\PostViewFactory> */
     use HasFactory;
 
     protected $fillable = [

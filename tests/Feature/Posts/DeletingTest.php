@@ -5,6 +5,7 @@ use App\Models\Post;
 use App\Models\PostView;
 use App\Models\UpvoteDownvote;
 use App\Models\User;
+use function Pest\Laravel\actingAs;
 
 test('a post with comments, views and votes can be deleted', function () {
     $post = Post::factory()
@@ -26,7 +27,7 @@ test('readers with comments and views can delete their account', function () {
     Comment::factory()->for($reader)->for($post)->create();
     PostView::factory()->for($post)->create(['user_id' => $reader->id]);
 
-    $this->actingAs($reader)
+    actingAs($reader)
         ->delete('/profile', ['password' => 'password'])
         ->assertSessionHasNoErrors()
         ->assertRedirect('/');

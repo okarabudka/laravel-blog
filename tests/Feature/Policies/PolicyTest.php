@@ -15,6 +15,7 @@ function userWithRole(string $who): ?User
         'reader' => User::factory()->create(),
         'unverified' => User::factory()->unverified()->create(),
         'admin' => tap(User::factory()->create(), fn (User $user) => $user->assignRole(Role::findOrCreate(User::ADMIN_ROLE))),
+        default => throw new InvalidArgumentException("Unknown role {$who}"),
     };
 }
 
@@ -24,7 +25,7 @@ test('policies are discovered for their models', function () {
 });
 
 test('who may view a post', function (string $who, string $state, bool $allowed) {
-    $post = Post::factory()->{$state}()->create();
+    $post = postInState($state);
 
     expect(Gate::forUser(userWithRole($who))->allows('view', $post))->toBe($allowed);
 })->with([

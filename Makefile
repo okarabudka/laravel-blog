@@ -10,10 +10,10 @@ COMPOSE := docker compose
 # -T keeps exec usable without a TTY (CI, scripts).
 EXEC := $(COMPOSE) exec -T php
 
-.PHONY: help certs env up down fresh sh test test-mariadb
+.PHONY: help certs env up down fresh sh test test-mariadb lint fix
 
 help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-13s\033[0m %s\n", $$1, $$2}'
 
 certs: ## Create a self-signed TLS certificate (skipped if present)
 	@sh docker/conf/ssl/generate.sh
@@ -40,7 +40,13 @@ sh: ## Open a shell in the PHP container
 	$(COMPOSE) exec php sh
 
 test: ## Run the test suite
-	$(EXEC) php artisan test
+	$(EXEC) composer test
 
 test-mariadb: ## Run the test suite against MariaDB instead of in-memory SQLite
 	@source .env && $(COMPOSE) exec -T -e DB_CONNECTION=mariadb -e DB_DATABASE=$${DB_DATABASE}_test php php artisan test
+
+lint: ## Check code style (Pint) and run static analysis (PHPStan, level max)
+	$(EXEC) composer lint
+
+fix: ## Fix code style (Pint)
+	$(EXEC) composer fix

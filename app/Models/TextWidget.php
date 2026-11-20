@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 
 class TextWidget extends Model
 {
+    /** @use HasFactory<\Database\Factories\TextWidgetFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -20,27 +20,16 @@ class TextWidget extends Model
 
     public static function getTitle(string $key): string
     {
-        $widget = Cache::get('text-widget-' . $key, function () use ($key){
-            return TextWidget::query()->where('active', '=', 1)->where('key', '=', $key)->first();
-        });
-
-        if ($widget) {
-            return $widget->title;
-        }
-
-        return '';
+        return self::findActive($key)->title ?? '';
     }
 
     public static function getContent(string $key): string
     {
-        $widget = Cache::get('text-widget-' . $key, function () use ($key){
-            return TextWidget::query()->where('active', '=', 1)->where('key', '=', $key)->first();
-        });
+        return self::findActive($key)->content ?? '';
+    }
 
-        if ($widget) {
-            return $widget->content;
-        }
-
-        return '';
+    private static function findActive(string $key): ?self
+    {
+        return self::query()->where('active', true)->where('key', $key)->first();
     }
 }

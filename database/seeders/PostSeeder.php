@@ -103,7 +103,7 @@ class PostSeeder extends Seeder
         }
 
         // Newest post first in the list, a few days apart.
-        return now()->subDays($index * 4 + 1)->setTime(fake()->numberBetween(7, 20), fake()->randomElement([0, 15, 30, 45]));
+        return now()->subDays($index * 4 + 1)->setTime(fake()->numberBetween(7, 20), 15 * fake()->numberBetween(0, 3));
     }
 
     private function body(): string

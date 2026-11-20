@@ -10,29 +10,38 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
 
-beforeEach(function () {
-    $this->admin = User::factory()->create();
-    $this->admin->assignRole(Role::findOrCreate('admin'));
-});
+function admin(): User
+{
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate(User::ADMIN_ROLE));
+
+    return $admin;
+}
 
 test('admins can open the panel and readers cannot', function () {
-    $this->actingAs($this->admin)->get('/admin')->assertOk();
-    $this->actingAs(User::factory()->create())->get('/admin')->assertForbidden();
+    $admin = admin();
+
+    actingAs($admin)->get('/admin')->assertOk();
+    actingAs(User::factory()->create())->get('/admin')->assertForbidden();
 });
 
 test('guests are sent to the panel login', function () {
-    $this->get('/admin')->assertRedirect('/admin/login');
+    get('/admin')->assertRedirect('/admin/login');
 });
 
 test('every resource list opens for admins', function (string $path) {
-    $this->actingAs($this->admin)->get($path)->assertOk();
+    actingAs(admin())->get($path)->assertOk();
 })->with(['/admin/posts', '/admin/categories', '/admin/text-widgets', '/admin/users']);
 
 test('admins create a post with a slug from the title', function () {
+    $admin = admin();
+
     $category = Category::factory()->create();
 
-    Livewire::actingAs($this->admin)
+    Livewire::actingAs($admin)
         ->test(CreatePost::class)
         ->fillForm([
             'title' => 'Hello from the admin panel',
@@ -47,21 +56,25 @@ test('admins create a post with a slug from the title', function () {
 
     $post = Post::sole();
     expect($post->slug)->toBe('hello-from-the-admin-panel')
-        ->and($post->user_id)->toBe($this->admin->id)
+        ->and($post->user_id)->toBe($admin->id)
         ->and($post->categories->pluck('id')->all())->toBe([$category->id]);
 });
 
 test('the post view page shows views and votes', function () {
+    $admin = admin();
+
     $post = Post::factory()->hasViews(4)->create();
 
-    $this->actingAs($this->admin)->get(ViewPost::getUrl(['record' => $post]))->assertOk();
+    actingAs($admin)->get(ViewPost::getUrl(['record' => $post]))->assertOk();
 
     Livewire::test(PostOverview::class, ['record' => $post])
         ->assertSeeInOrder(['Views', '4', 'Upvotes', '0', 'Downvotes', '0']);
 });
 
 test('admins create another admin with a verified email', function () {
-    Livewire::actingAs($this->admin)
+    $admin = admin();
+
+    Livewire::actingAs($admin)
         ->test(CreateUser::class)
         ->fillForm([
             'name' => 'Second Admin',
@@ -79,7 +92,9 @@ test('admins create another admin with a verified email', function () {
 });
 
 test('creating a user needs a matching password confirmation', function () {
-    Livewire::actingAs($this->admin)
+    $admin = admin();
+
+    Livewire::actingAs($admin)
         ->test(CreateUser::class)
         ->fillForm([
             'name' => 'Second Admin',

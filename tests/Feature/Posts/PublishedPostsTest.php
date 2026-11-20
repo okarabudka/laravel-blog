@@ -1,12 +1,13 @@
 <?php
 
 use App\Models\Post;
+use function Pest\Laravel\get;
 
 test('a post published an hour ago is the latest post on the home page', function () {
     Post::factory()->create(['title' => 'Older post', 'published_at' => now()->subWeek()]);
     Post::factory()->create(['title' => 'Fresh post', 'published_at' => now()->subHour()]);
 
-    $this->get(route('home'))
+    get(route('home'))
         ->assertOk()
         ->assertSeeInOrder(['Latest post', 'Fresh post', 'Popular posts']);
 });
@@ -23,5 +24,5 @@ test('scheduled posts and drafts are not published', function () {
 test('a scheduled post page is not found', function () {
     $post = Post::factory()->scheduled()->create();
 
-    $this->get(route('view', $post))->assertNotFound();
+    get(route('view', $post))->assertNotFound();
 });

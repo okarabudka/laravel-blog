@@ -14,12 +14,16 @@ use Illuminate\Support\Str;
 
 class Post extends Model
 {
+    /** @use HasFactory<\Database\Factories\PostFactory> */
     use HasFactory;
+
+    private const int WORDS_PER_MINUTE = 200;
 
     protected $fillable = ['title', 'slug', 'thumbnail', 'body', 'active', 'published_at', 'user_id', 'meta_title', 'meta_description'];
 
     protected $casts = [
-        'published_at' => 'datetime'
+        'active' => 'boolean',
+        'published_at' => 'datetime',
     ];
 
     /**
@@ -39,11 +43,17 @@ class Post extends Model
         return $this->active && $this->published_at !== null && $this->published_at->lte(now());
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsToMany<Category, $this>
+     */
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
@@ -54,9 +64,9 @@ class Post extends Model
         return Str::words(strip_tags($this->body), 30);
     }
 
-    public function getFormattedDate()
+    public function getFormattedDate(): string
     {
-        return $this->published_at->format('F jS Y');
+        return $this->published_at?->format('F jS Y') ?? '';
     }
 
     public function getThumbnail(): ?string
@@ -72,16 +82,22 @@ class Post extends Model
         return '/storage/'.$this->thumbnail;
     }
 
-    public function humanReadTime(): Attribute
+    /**
+     * Reading time at 200 words per minute, e.g. "3 mins, 512 words".
+     *
+     * @return Attribute<string, never>
+     */
+    protected function humanReadTime(): Attribute
     {
-        return new Attribute(
-            get: function ($value, $attributes) {
-                $words = Str::wordCount(strip_tags($attributes['body']));
-                $minutes = ceil($words / 200);
+        return Attribute::get(fn (): string => $this->readTime());
+    }
 
-                return $minutes . ' ' . str('min')->plural($minutes) . ', ' . $words . ' ' . str('words')->plural($words);
-            }
-        );
+    private function readTime(): string
+    {
+        $words = Str::wordCount(strip_tags($this->body));
+        $minutes = (int) ceil($words / self::WORDS_PER_MINUTE);
+
+        return $minutes.' '.Str::plural('min', $minutes).', '.$words.' '.Str::plural('word', $words);
     }
 
     /**
