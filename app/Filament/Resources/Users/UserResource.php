@@ -44,10 +44,11 @@ class UserResource extends Resource
                     ->maxLength(255)
                     ->visibleOn('create')
                     ->confirmed(),
-                TextInput::make('password_verify')
+                TextInput::make('password_confirmation')
                     ->password()
                     ->required()
                     ->maxLength(255)
+                    ->dehydrated(false)
                     ->visibleOn('create'),
             ]);
     }

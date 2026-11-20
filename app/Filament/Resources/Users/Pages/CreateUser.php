@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
-use Carbon\Carbon;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,8 +22,8 @@ class CreateUser extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['email_verified'] = Carbon::now();
-        $data['password'] = bcrypt($data['password']);
+        // Admins are created by another admin, so their address counts as verified.
+        $data['email_verified_at'] = now();
 
         return $data;
     }
