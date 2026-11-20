@@ -1,33 +1,29 @@
-<article class="flex flex-col shadow my-4">
+@props(['post', 'excerpt' => true])
 
-    <a href="{{ route('view', $post) }}" class="hover:opacity-75">
-        <img src="{{ $post->getThumbnail() }}">
+<article {{ $attributes->merge(['class' => 'post-card']) }}>
+    <a href="{{ route('view', $post) }}" class="post-card__image">
+        <img src="{{ $post->getThumbnail() }}" alt="" loading="lazy">
     </a>
 
-    <div class="bg-white flex flex-col justify-start p-6">
+    <div class="post-card__body">
+        <div class="badges">
+            @foreach($post->categories as $category)
+                <a href="{{ route('by-category', $category) }}" class="badge">{{ $category->title }}</a>
+            @endforeach
+        </div>
 
-        @foreach($post->categories as $category)
-            <a href="{{ route('by-category', $category) }}" class="text-blue-700 text-sm font-bold uppercase pb-4">
-                {{ $category->title }}
-            </a>
-        @endforeach
+        <a href="{{ route('view', $post) }}" class="post-card__title">{{ $post->title }}</a>
 
-        <a href="{{ route('view', $post) }}" class="text-3xl font-bold hover:text-gray-700 pb-4">
-            {{ $post->title }}
-        </a>
-
-        <p href="#" class="text-sm pb-3">
-            By <a href="#" class="font-semibold hover:text-gray-800">
-                {{ $post->user->name }}
-            </a>, Published on {{ $post->getFormattedDate() }} | {{ $post->human_read_time }}
+        <p class="post-meta">
+            By <strong>{{ $post->user->name }}</strong> · {{ $post->getFormattedDate() }} · {{ $post->human_read_time }}
         </p>
 
-        <a href="{{ route('view', $post) }}" class="pb-6">
-            {{ $post->shortBody() }}
-        </a>
+        @if($excerpt)
+            <p class="post-card__excerpt">{{ $post->shortBody() }}</p>
 
-        <a href="{{ route('view', $post) }}" class="uppercase text-gray-800 hover:text-black">
-            Continue Reading <i class="fas fa-arrow-right"></i>
-        </a>
+            <a href="{{ route('view', $post) }}" class="read-more">
+                Continue reading <x-heroicon-o-arrow-right class="icon"/>
+            </a>
+        @endif
     </div>
 </article>

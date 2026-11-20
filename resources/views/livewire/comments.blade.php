@@ -1,7 +1,9 @@
-<div xmlns:livewire="http://www.w3.org/1999/html">
+<section class="comments">
+    <h2 class="section-title">Comments</h2>
+
     @foreach($comments as $comment)
-        <livewire:comment-item :comment="$comment"/>
+        <livewire:comment-item :comment="$comment" :key="$comment->id"/>
     @endforeach
 
     <livewire:comment-create :post="$post"/>
-</div>
+</section>

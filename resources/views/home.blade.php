@@ -1,41 +1,26 @@
-<?php
-/** @var $posts LengthAwarePaginator */
-?>
-
 <x-app-layout meta-description="My personal blog page">
+    <div class="home-top">
+        <section>
+            <h2 class="section-title">Latest post</h2>
+            <x-post-item :post="$latestPost" class="post-card--featured"/>
+        </section>
 
-    <div class="container max-w-3xl mx-auto py-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Latest post -->
-            <div class="col-span-2">
-                <h2 class="text-lg sm:text-xl font-bold text-blue-500 uppercase pb-1 border-b-2 border-blue-500 mb-3">
-                    Latest post
-                </h2>
-
-                <x-post-item :post="$latestPost"/>
-            </div>
-
-            <!-- Popular 3 post -->
-            <div>
-                <h2 class="text-lg sm:text-xl font-bold text-blue-500 uppercase pb-1 border-b-2 border-blue-500 mb-3">
-                    Popular posts
-                </h2>
-
+        <section>
+            <h2 class="section-title">Popular posts</h2>
+            <div class="post-stack">
                 @foreach($popularPosts as $post)
-                    <x-post-item :post="$post"/>
+                    <x-post-item :post="$post" :excerpt="false" class="post-card--compact"/>
                 @endforeach
             </div>
-        </div>
+        </section>
+    </div>
 
-        <!-- Recommended posts -->
-        <div>
-            <h2 class="text-lg sm:text-xl font-bold text-blue-500 uppercase pb-1 border-b-2 border-blue-500 mb-3">
-                Recommended posts
-            </h2>
+    <section class="section">
+        <h2 class="section-title">Recommended posts</h2>
+        <div class="post-grid">
             @foreach($recommendedPosts as $post)
                 <x-post-item :post="$post"/>
             @endforeach
         </div>
-    </div>
-
+    </section>
 </x-app-layout>

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // The plain stylesheet styles Laravel's markup-only pagination view, not the Tailwind one.
+        Paginator::defaultView('pagination::default');
+        Paginator::defaultSimpleView('pagination::simple-default');
     }
 }

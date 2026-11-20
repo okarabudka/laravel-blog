@@ -1,162 +1,82 @@
 @php use App\Models\TextWidget; @endphp
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        {{ $metaTitle ?: 'My blog' }}
-    </title>
-    <meta name="author" content="Author">
+    <title>{{ $metaTitle ?: config('app.name') }}</title>
     <meta name="description" content="{{ $metaDescription ?: '' }}">
 
-    <style>
-        @import url('https://fonts.googleapis.com/css?family=Karla:400,700&display=swap');
-
-        .font-family-karla {
-            font-family: karla;
-        }
-    </style>
-
-    <!-- Font Awesome -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"
-            integrity="sha256-KzZiKy0DWYsnwMF+X1DvQngQ2/FxF7MF3Ff72XcpuPs=" crossorigin="anonymous"></script>
-
-    @livewireStyles
-
-    <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @livewireStyles
 </head>
-<body class="bg-white font-family-karla">
+<body>
 
-<!-- Text Header -->
-<header class="w-full container mx-auto">
-    <div class="flex flex-col items-center py-12">
-        <a class="font-bold text-gray-800 uppercase hover:text-gray-700 text-5xl" href="#">
-            {{ TextWidget::getTitle('header') }}
-        </a>
-        <p class="text-lg text-gray-600">
-            {!! TextWidget::getContent('header') !!}
-        </p>
+<header class="site-header">
+    <div class="container">
+        <a class="site-title" href="{{ route('home') }}">{{ TextWidget::getTitle('header') ?: config('app.name') }}</a>
+        <div class="site-tagline">{!! TextWidget::getContent('header') !!}</div>
     </div>
 </header>
 
-<!-- Topic Nav -->
-<nav class="w-full py-4 border-t border-b bg-gray-100" x-data="{ open: false }">
-    <div class="block sm:hidden">
-        <a href="#"
-           class="block md:hidden text-base font-bold uppercase text-center flex justify-center items-center"
-           @click="open = !open">
-            Topics <i :class="open ? 'fa-chevron-down': 'fa-chevron-up'" class="fas ml-2"></i>
-        </a>
-    </div>
-    <div :class="open ? 'block': 'hidden'" class="w-full flex-grow sm:flex sm:items-center sm:w-auto">
-        <div
-            class="w-full container mx-auto flex flex-col sm:flex-row items-center justify-center text-sm font-bold uppercase mt-0 px-6 py-2">
+<nav class="topics" x-data="{ open: false }">
+    <div class="container topics-bar">
+        <button type="button" class="topics-toggle" @click="open = ! open">
+            Topics <x-heroicon-o-chevron-down class="icon"/>
+        </button>
 
-            <a href="{{ route('home') }}" class="hover:bg-gray-400 rounded py-2 px-4 mx-2">
-                Home
-            </a>
+        <div class="topics-list" :class="{ 'is-open': open }">
+            <a href="{{ route('home') }}" @class(['is-active' => request()->routeIs('home')])>Home</a>
+            @foreach($categories as $category)
+                <a href="{{ route('by-category', $category) }}"
+                   @class(['is-active' => request('category')?->slug === $category->slug])>{{ $category->title }}</a>
+            @endforeach
+            <a href="{{ route('about') }}" @class(['is-active' => request()->routeIs('about')])>About us</a>
+        </div>
 
-            @if(isset($categories))
-                @foreach($categories as $category)
-                    <a href="{{ route('by-category', $category) }}"
-                       class="hover:bg-gray-400 rounded py-2 px-4 mx-2 {{ request('category')?->slug === $category->slug ? 'bg-blue-600 text-white' : '' }}">
-                        {{ $category->title }}
-                    </a>
-                @endforeach
-            @endif
-
-            <a href="{{ route('about') }}" class="hover:bg-gray-400 rounded py-2 px-4 mx-2">
-                About us
-            </a>
-
+        <div class="account">
             @auth
-                <div class="flex sm:items-center sm:ml-6">
-                    <x-dropdown align="right" width="48">
-                        <x-slot name="trigger">
-                            <button
-                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                                <div>{{ Auth::user()->name }}</div>
-
-                                <div class="ml-1">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                         viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                              clip-rule="evenodd"/>
-                                    </svg>
-                                </div>
-                            </button>
-                        </x-slot>
-
-                        <x-slot name="content">
-                            <x-dropdown-link :href="route('profile.edit')">
-                                {{ __('Profile') }}
-                            </x-dropdown-link>
-
-                            <!-- Authentication -->
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-
-                                <x-dropdown-link :href="route('logout')"
-                                                 onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                    {{ __('Log Out') }}
-                                </x-dropdown-link>
-                            </form>
-                        </x-slot>
-                    </x-dropdown>
+                <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
+                    <button type="button" class="dropdown-trigger" @click="open = ! open">
+                        {{ Auth::user()->name }} <x-heroicon-o-chevron-down class="icon"/>
+                    </button>
+                    <div class="dropdown-panel" x-show="open" x-cloak>
+                        <a class="dropdown-link" href="{{ route('profile.edit') }}">{{ __('Profile') }}</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="dropdown-link">{{ __('Log Out') }}</button>
+                        </form>
+                    </div>
                 </div>
             @else
-                <a href="{{ route('login') }}" class="uppercase px-3">
-                    Login
-                </a>
-
-                <a href="{{ route('register') }}" class="uppercase px-3">
-                    Register
-                </a>
+                <a href="{{ route('login') }}">Log in</a>
+                <a href="{{ route('register') }}" class="btn btn-primary">Register</a>
             @endauth
-
         </div>
     </div>
 </nav>
 
-
-<div class="container mx-auto flex flex-wrap py-6">
+<main class="container page">
+    @isset($header)
+        <div class="page-header">{{ $header }}</div>
+    @endisset
 
     {{ $slot }}
+</main>
 
-</div>
-
-<footer class="w-full border-t bg-white pb-12">
-
-    <div class="w-full container mx-auto flex flex-col items-center">
-        <div class="flex flex-col md:flex-row text-center md:text-left md:justify-between py-6">
-
-            <a href="{{ route('home') }}" class="uppercase px-3">
-                Home
-            </a>
-
-            @if(isset($categories))
-                @foreach($categories as $category)
-                    <a href="{{ route('by-category', $category) }}"
-                       class="uppercase px-3 {{ request('category')?->slug === $category->slug ? 'bg-blue-600 text-white' : '' }}">
-                        {{ $category->title }}
-                    </a>
-                @endforeach
-            @endif
-
-            <a href="{{ route('about') }}" class="uppercase px-3">
-                About us
-            </a>
-
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-links">
+            <a href="{{ route('home') }}">Home</a>
+            @foreach($categories as $category)
+                <a href="{{ route('by-category', $category) }}">{{ $category->title }}</a>
+            @endforeach
+            <a href="{{ route('about') }}">About us</a>
         </div>
-        <div class="uppercase pb-6">&copy; myblog.com</div>
+        <div>&copy; {{ date('Y') }} {{ config('app.name') }}</div>
     </div>
 </footer>
 
 @livewireScripts
-
 </body>
 </html>
