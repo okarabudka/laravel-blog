@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Post;
+
 use function Pest\Laravel\get;
 
 test('previous and next link to the neighbouring posts', function () {

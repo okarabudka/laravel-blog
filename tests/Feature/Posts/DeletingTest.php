@@ -5,6 +5,7 @@ use App\Models\Post;
 use App\Models\PostView;
 use App\Models\UpvoteDownvote;
 use App\Models\User;
+
 use function Pest\Laravel\actingAs;
 
 test('a post with comments, views and votes can be deleted', function () {

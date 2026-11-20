@@ -3,8 +3,9 @@
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\UpvoteDownvote;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
+
 use function Pest\Laravel\get;
 
 test('the home page renders on an empty database', function () {

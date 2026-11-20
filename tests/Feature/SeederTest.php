@@ -9,6 +9,7 @@ use App\Models\UpvoteDownvote;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Storage;
+
 use function Pest\Laravel\assertAuthenticated;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;

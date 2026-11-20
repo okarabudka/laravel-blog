@@ -3,6 +3,7 @@
 use App\Models\Post;
 use App\Models\PostView;
 use App\Models\User;
+
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 use function Pest\Laravel\withHeader;

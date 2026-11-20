@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
+use Database\Factories\UpvoteDownvoteFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UpvoteDownvote extends Model
 {
-    /** @use HasFactory<\Database\Factories\UpvoteDownvoteFactory> */
+    /** @use HasFactory<UpvoteDownvoteFactory> */
     use HasFactory;
 
     protected $fillable = [
         'is_upvote',
         'post_id',
-        'user_id'
+        'user_id',
     ];
 
     public static function findFor(Post $post, User $user): ?self

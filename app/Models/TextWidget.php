@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\TextWidgetFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TextWidget extends Model
 {
-    /** @use HasFactory<\Database\Factories\TextWidgetFactory> */
+    /** @use HasFactory<TextWidgetFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -15,7 +16,7 @@ class TextWidget extends Model
         'image',
         'title',
         'content',
-        'active'
+        'active',
     ];
 
     public static function getTitle(string $key): string

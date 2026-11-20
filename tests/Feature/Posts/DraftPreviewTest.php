@@ -4,6 +4,7 @@ use App\Models\Post;
 use App\Models\PostView;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
+
 use function Pest\Laravel\actingAs;
 
 test('admins can preview a draft without counting a view', function () {

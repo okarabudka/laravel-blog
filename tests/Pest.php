@@ -3,6 +3,7 @@
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -14,7 +15,7 @@ pest()->extend(TestCase::class)
  *
  * @template T of object
  *
- * @param  TestResponse<\Symfony\Component\HttpFoundation\Response>  $response
+ * @param  TestResponse<Response>  $response
  * @param  class-string<T>  $type
  * @return T
  */

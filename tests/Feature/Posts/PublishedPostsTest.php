@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Post;
+
 use function Pest\Laravel\get;
 
 test('a post published an hour ago is the latest post on the home page', function () {

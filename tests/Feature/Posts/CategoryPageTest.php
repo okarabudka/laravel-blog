@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Pagination\LengthAwarePaginator;
+
 use function Pest\Laravel\get;
 
 test('the category page lists its published posts with pagination', function () {

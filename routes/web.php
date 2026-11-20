@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\SiteController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
 /*

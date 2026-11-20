@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+
 use function Pest\Laravel\actingAs;
 
 test('password can be updated', function () {
